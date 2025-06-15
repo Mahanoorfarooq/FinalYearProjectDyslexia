@@ -106,10 +106,11 @@ flutter run
 ## 🌐 ML Model API
 
 The app communicates with an external Python API to perform predictions.
-In your ML backend file, change the IP to your LocalHost IP and then run the backend files and then the app.
+In your ML backend file, change the IP to your LocalHost IP and then run the backend files and then the app. Place ML Models in .h5 or tfite in yout backend folder and make sure main file in backend includes these two endpoints.
 
 * `POST /predict_mri`
 * `POST /predict_handwriting`
+* `python app.py`
 
 Response format (JSON):
 
