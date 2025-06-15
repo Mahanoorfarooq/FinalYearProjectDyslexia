@@ -1,4 +1,3 @@
-````markdown
 # Dyslexify 🧠📱
 
 **Dyslexify** is a Flutter-based mobile application designed for early detection and support of dyslexia using machine learning, interactive assessments, and informative resources.
@@ -52,6 +51,7 @@ cd FinalYearProjectDyslexia
 
 ```bash
 flutter pub get
+flutter run
 ```
 
 ### 3. Configure Firebase
