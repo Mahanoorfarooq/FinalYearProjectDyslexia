@@ -13,6 +13,8 @@ class ContactScreen extends StatefulWidget {
 class _ContactScreenState extends State<ContactScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _contactController =
+      TextEditingController(); // New
   final TextEditingController _messageController = TextEditingController();
   bool _isLoading = false;
 
@@ -36,6 +38,7 @@ class _ContactScreenState extends State<ContactScreen> {
             .collection('contactMessages')
             .add({
           'name': _nameController.text.trim(),
+          'contact': _contactController.text.trim(),
           'message': _messageController.text.trim(),
           'timestamp': FieldValue.serverTimestamp(),
         });
@@ -44,9 +47,10 @@ class _ContactScreenState extends State<ContactScreen> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
+              backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20)),
-              contentPadding: const EdgeInsets.all(24),
+              contentPadding: const EdgeInsets.all(15),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: const [
@@ -55,7 +59,7 @@ class _ContactScreenState extends State<ContactScreen> {
                   Text(
                     'Message sent successfully!',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 18),
+                    style: TextStyle(fontSize: 16),
                   ),
                 ],
               ),
@@ -74,6 +78,7 @@ class _ContactScreenState extends State<ContactScreen> {
         );
 
         _nameController.clear();
+        _contactController.clear();
         _messageController.clear();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -93,7 +98,7 @@ class _ContactScreenState extends State<ContactScreen> {
         title: const Text('Contact Us'),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
-        elevation: 1,
+        elevation: 0,
       ),
       drawer: CustomDrawer(
         onItemSelected: (index) {
@@ -119,7 +124,7 @@ class _ContactScreenState extends State<ContactScreen> {
       ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -127,13 +132,13 @@ class _ContactScreenState extends State<ContactScreen> {
             const Center(
               child: Text(
                 'Need Help?',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(height: 12),
             const Text(
               'Our support team is here to assist you. Reach out anytime and we’ll get back to you as soon as possible.',
-              style: TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: 15, color: Colors.grey),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -141,39 +146,40 @@ class _ContactScreenState extends State<ContactScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
-              clipBehavior:
-                  Clip.antiAlias, // Ensures child respects the border radius
+              clipBehavior: Clip.antiAlias,
               elevation: 4,
               shadowColor: Colors.black26,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Color(0xFF1E2C3A),
+                  color: const Color(0xFF1E2C3A),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                 child: Column(
                   children: [
                     ListTile(
-                      leading: const Icon(Icons.email, color: Colors.white),
+                      leading: const Icon(Icons.email,
+                          color: Colors.white, size: 25),
                       title: Text(
-                        '2021cs403@student.uet.edu.pk',
-                        style: TextStyle(color: Colors.grey[300]),
+                        'mahnoor9888@gmail.com',
+                        style: TextStyle(color: Colors.grey[300], fontSize: 14),
                       ),
                     ),
                     ListTile(
-                      leading: const Icon(Icons.phone, color: Colors.white),
+                      leading: const Icon(Icons.phone,
+                          color: Colors.white, size: 25),
                       title: Text(
                         '+92 323 8757609',
-                        style: TextStyle(color: Colors.grey[300]),
+                        style: TextStyle(color: Colors.grey[300], fontSize: 14),
                       ),
                     ),
                     ListTile(
-                      leading:
-                          const Icon(Icons.location_on, color: Colors.white),
+                      leading: const Icon(Icons.location_on,
+                          color: Colors.white, size: 25),
                       title: Text(
                         'UET, Pakistan',
-                        style: TextStyle(color: Colors.grey[300]),
+                        style: TextStyle(color: Colors.grey[300], fontSize: 14),
                       ),
                     ),
                   ],
@@ -182,7 +188,7 @@ class _ContactScreenState extends State<ContactScreen> {
             ),
             const SizedBox(height: 30),
             const Text(
-              'Send us a message:',
+              'Send us a message',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
@@ -212,6 +218,20 @@ class _ContactScreenState extends State<ContactScreen> {
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
+                      controller: _contactController,
+                      decoration: InputDecoration(
+                        labelText: 'Your Email or Contact',
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      validator: (value) => value == null || value.isEmpty
+                          ? 'Please enter your email or phone'
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
                       controller: _messageController,
                       decoration: InputDecoration(
                         labelText: 'Your Message',
@@ -227,7 +247,7 @@ class _ContactScreenState extends State<ContactScreen> {
                     ),
                     const SizedBox(height: 20),
                     SizedBox(
-                      width: 200,
+                      width: 180,
                       child: ElevatedButton.icon(
                         onPressed: _isLoading ? null : _submitToFirebase,
                         icon: _isLoading
@@ -237,10 +257,7 @@ class _ContactScreenState extends State<ContactScreen> {
                                 child:
                                     CircularProgressIndicator(strokeWidth: 2),
                               )
-                            : const Icon(
-                                Icons.send,
-                                color: Colors.white,
-                              ),
+                            : const Icon(Icons.send, color: Colors.white),
                         label: Text(
                           _isLoading ? 'Sending...' : 'Send Message',
                           style: const TextStyle(fontSize: 16),

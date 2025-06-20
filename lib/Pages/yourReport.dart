@@ -7,6 +7,7 @@ import 'package:open_file/open_file.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:intl/intl.dart'; // For date formatting
 
 class YourReport extends StatefulWidget {
   final Map<String, dynamic> predictionData;
@@ -20,10 +21,12 @@ class YourReport extends StatefulWidget {
 class _YourReportState extends State<YourReport> {
   Map<String, dynamic>? userData;
   bool loading = true;
+  late String formattedDate;
 
   @override
   void initState() {
     super.initState();
+    formattedDate = DateFormat('MMMM dd, yyyy').format(DateTime.now());
     _fetchUserDetails();
   }
 
@@ -106,7 +109,7 @@ class _YourReportState extends State<YourReport> {
     final isDyslexic = prediction.toString().toLowerCase() == 'dyslexic';
     final recommendations = isDyslexic
         ? [
-            "Daily reading practice for 15–20 minutes.",
+            "Daily reading practice for 15-20 minutes.",
             "Weekly sessions with a licensed speech or reading therapist.",
             "Use text-to-speech and dictation tools.",
             "Play phonics-based and multisensory educational games.",
@@ -129,6 +132,9 @@ class _YourReportState extends State<YourReport> {
               pw.Text('Dyslexia Report',
                   style: pw.TextStyle(
                       fontSize: 24, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 10),
+              pw.Text('Report Date: $formattedDate',
+                  style: pw.TextStyle(fontSize: 12)),
               pw.SizedBox(height: 20),
               pw.Text('Full Name: ${userData?['fullName'] ?? 'N/A'}'),
               pw.Text(
@@ -170,6 +176,7 @@ class _YourReportState extends State<YourReport> {
           'prediction': prediction,
           'probability': probability,
           'timestamp': FieldValue.serverTimestamp(),
+          'reportDate': formattedDate,
           'recommendations': recommendations,
           'pdfBase64': base64Pdf,
           'fileName': '$fileName.pdf',
@@ -214,7 +221,7 @@ class _YourReportState extends State<YourReport> {
     final isDyslexic = prediction.toString().toLowerCase() == 'dyslexic';
     final recommendations = isDyslexic
         ? [
-            "Daily reading practice for 15–20 minutes.",
+            "Daily reading practice for 15-20 minutes.",
             "Weekly sessions with a licensed speech or reading therapist.",
             "Use text-to-speech and dictation tools.",
             "Play phonics-based and multisensory educational games.",
@@ -234,7 +241,7 @@ class _YourReportState extends State<YourReport> {
         centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
-        elevation: 1,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -254,7 +261,7 @@ class _YourReportState extends State<YourReport> {
                   ),
                 ],
               ),
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               margin: const EdgeInsets.only(bottom: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,7 +287,7 @@ class _YourReportState extends State<YourReport> {
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 20,
+                      fontSize: 18,
                     ),
                   ),
                   const Divider(height: 24, color: Colors.white12),
@@ -291,22 +298,23 @@ class _YourReportState extends State<YourReport> {
                       source == 'predictionsHandwriting'
                           ? 'Handwriting'
                           : 'MRI'),
+                  _infoRow('Report Date', formattedDate),
                 ],
               ),
             ),
             Text('Prediction: $prediction',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: isDyslexic ? Colors.red : Colors.green,
                 )),
             Text(
               'Probability: ${(probability * 100).toStringAsFixed(1)}%',
-              style: const TextStyle(fontSize: 18),
+              style: const TextStyle(fontSize: 14),
             ),
             const Divider(height: 30),
             const Text('Recommendations:',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             ...recommendations.map((rec) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 6),
@@ -317,7 +325,7 @@ class _YourReportState extends State<YourReport> {
                       const SizedBox(width: 8),
                       Expanded(
                           child:
-                              Text(rec, style: const TextStyle(fontSize: 16))),
+                              Text(rec, style: const TextStyle(fontSize: 14))),
                     ],
                   ),
                 )),
@@ -331,11 +339,12 @@ class _YourReportState extends State<YourReport> {
 
   Widget _infoRow(String label, String? value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.white70)),
+          Text(label,
+              style: const TextStyle(color: Colors.white70, fontSize: 12)),
           Flexible(
             child: Text(
               value ?? 'N/A',
@@ -356,13 +365,13 @@ class _YourReportState extends State<YourReport> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: ElevatedButton.icon(
         icon: const Icon(Icons.download, color: Colors.white),
-        label: const Text('View / Download PDF Report'),
+        label: const Text('View / Download Report'),
         onPressed: _generatePdfAndSave,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF335e96),
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 30),
-          textStyle: const TextStyle(fontSize: 18),
+          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+          textStyle: const TextStyle(fontSize: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(10)),
             side: const BorderSide(color: Colors.white24),

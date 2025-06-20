@@ -82,7 +82,7 @@ class _AboutPageState extends State<AboutPage> {
               Center(
                 child: SizedBox(
                   width:
-                      200, // Set to your desired width instead of double.infinity
+                      170, // Set to your desired width instead of double.infinity
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pushNamed(context, '/dyslexia');
@@ -99,7 +99,7 @@ class _AboutPageState extends State<AboutPage> {
                     ),
                     child: const Text(
                       'Visit Dyslexia Page',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
+                      style: TextStyle(fontSize: 14, color: Colors.white),
                     ),
                   ),
                 ),
@@ -144,7 +144,7 @@ class _AboutPageState extends State<AboutPage> {
     return Text(
       title,
       style: const TextStyle(
-        fontSize: 22,
+        fontSize: 18,
         fontWeight: FontWeight.bold,
         color: Color(0xFF1E2C3A),
       ),
@@ -162,7 +162,7 @@ class _AboutPageState extends State<AboutPage> {
         padding: const EdgeInsets.all(16.0),
         child: Text(
           text,
-          style: const TextStyle(fontSize: 16, height: 1.6),
+          style: const TextStyle(fontSize: 14, height: 1.6),
           textAlign: TextAlign.justify,
         ),
       ),
@@ -212,7 +212,7 @@ class _AboutPageState extends State<AboutPage> {
                   child: Text(
                     title,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF1E2C3A),
                     ),
@@ -226,7 +226,7 @@ class _AboutPageState extends State<AboutPage> {
               padding: const EdgeInsets.only(left: 42.0),
               child: Text(
                 content,
-                style: const TextStyle(fontSize: 15, height: 1.6),
+                style: const TextStyle(fontSize: 13, height: 1.6),
               ),
             ),
           ],

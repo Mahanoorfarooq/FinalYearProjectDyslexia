@@ -17,6 +17,7 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final _firestore = FirebaseFirestore.instance;
+  final _auth = FirebaseAuth.instance;
   int _currentIndex = 2;
 
   String name = '';
@@ -33,7 +34,8 @@ class _ProfilePageState extends State<ProfilePage> {
   late TextEditingController addressController;
   late TextEditingController roleController;
 
-  User? get user => FirebaseAuth.instance.currentUser;
+  User? get user => _auth.currentUser;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -54,7 +56,6 @@ class _ProfilePageState extends State<ProfilePage> {
     super.dispose();
   }
 
-  // Save profile data locally so it can be shown after logout
   Future<void> saveProfileLocally() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('name', nameController.text);
@@ -67,7 +68,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // Load profile data locally (if user logged out)
   Future<void> loadProfileLocally() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -91,6 +91,8 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     try {
+      setState(() => _isLoading = true);
+
       final profileDataDoc = await _firestore
           .collection('users')
           .doc(user!.uid)
@@ -109,7 +111,7 @@ class _ProfilePageState extends State<ProfilePage> {
         final data = profileDataDoc.data()!;
         setState(() {
           name = data['username'] ?? '';
-          email = user!.email ?? ''; // fallback to Firebase email
+          email = user!.email ?? '';
           phone = data['phone'] ?? '';
           address = data['address'] ?? '';
           role = data['role'] ?? '';
@@ -128,6 +130,8 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     } catch (e) {
       showError("Error fetching profile: $e");
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -139,6 +143,8 @@ class _ProfilePageState extends State<ProfilePage> {
     if (pickedFile == null) return;
 
     try {
+      setState(() => _isLoading = true);
+
       if (kIsWeb) {
         final bytes = await pickedFile.readAsBytes();
         setState(() {
@@ -162,10 +168,11 @@ class _ProfilePageState extends State<ProfilePage> {
           .doc('photo')
           .set({'imageBase64': imageBase64});
 
-      // Update local storage too
       await saveProfileLocally();
     } catch (e) {
       showError("Error uploading image: $e");
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -173,6 +180,8 @@ class _ProfilePageState extends State<ProfilePage> {
     if (user == null) return;
 
     try {
+      setState(() => _isLoading = true);
+
       await _firestore
           .collection('users')
           .doc(user!.uid)
@@ -187,12 +196,28 @@ class _ProfilePageState extends State<ProfilePage> {
 
       await saveProfileLocally();
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Profile updated")),
+        const SnackBar(
+          content: Text("Profile updated successfully"),
+          backgroundColor: Colors.green,
+        ),
       );
     } catch (e) {
       showError("Error updating profile: $e");
+    } finally {
+      setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> resetPassword() async {
+    if (user?.email == null) return;
+
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      builder: (context) => const ResetPasswordDialog(),
+    );
   }
 
   Future<void> deleteAccount() async {
@@ -200,42 +225,119 @@ class _ProfilePageState extends State<ProfilePage> {
 
     showDialog(
       context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: Colors.white,
+          title: const Text(
+            "Confirm Account Deletion",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            "Are you sure you want to permanently delete your account?",
+            style: TextStyle(fontSize: 14, color: Colors.black87),
+          ),
+          actionsPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          actionsAlignment: MainAxisAlignment.end,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[700],
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                try {
+                  setState(() => _isLoading = true);
+
+                  await _firestore.collection('users').doc(user!.uid).delete();
+                  await user!.delete();
+
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.clear();
+
+                  if (!mounted) return;
+
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, '/login', (route) => false);
+                } catch (e) {
+                  showError("Error deleting account: $e");
+                } finally {
+                  setState(() => _isLoading = false);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: const Text(
+                "Delete Account",
+                style: TextStyle(fontSize: 12),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _logout() async {
+    // Show confirmation dialog
+    final shouldLogout = await showDialog<bool>(
+      context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Confirm Deletion"),
-        content: const Text("Are you sure you want to delete your account?"),
+        backgroundColor: Colors.white,
+        title: const Text('Confirm Logout', style: TextStyle(fontSize: 16)),
+        content: const Text('Are you sure you want to logout?',
+            style: TextStyle(fontSize: 14, color: Colors.grey)),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel", style: TextStyle(color: Colors.black)),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () async {
-              Navigator.pop(context);
-              try {
-                await _firestore.collection('users').doc(user!.uid).delete();
-                await user!.delete();
-
-                // Clear local storage on deletion
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.clear();
-
-                Navigator.pushNamedAndRemoveUntil(
-                    context, '/login', (route) => false);
-              } catch (e) {
-                showError("Error deleting account: $e");
-              }
-            },
-            child: const Text("Delete", style: TextStyle(color: Colors.white)),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Logout', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
     );
+
+    // If user confirmed logout
+    if (shouldLogout == true) {
+      try {
+        setState(() => _isLoading = true);
+        await saveProfileLocally();
+        await _auth.signOut();
+        if (!mounted) return;
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      } catch (e) {
+        showError("Error during logout: $e");
+      } finally {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   void showError(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
   @override
@@ -261,29 +363,34 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Bio–data', style: TextStyle(color: Colors.black)),
+        title: const Text(
+          'Profile',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 22,
+          ),
+        ),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.black),
-            onPressed: () async {
-              await saveProfileLocally();
-              await FirebaseAuth.instance.signOut();
-              if (!mounted) return;
-
-              await fetchUserProfile();
-              Navigator.pushNamedAndRemoveUntil(
-                  context, '/login', (route) => false);
-            },
-          )
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: TextButton.icon(
+              icon: const Icon(Icons.logout, color: Colors.red),
+              label: const Text(
+                'LogOut',
+                style: TextStyle(color: Colors.red),
+              ),
+              onPressed: _logout,
+            ),
+          ),
         ],
       ),
       drawer: CustomDrawer(
         onItemSelected: (index) {
-          Navigator.pop(context); // Close drawer
+          Navigator.pop(context);
           switch (index) {
             case 0:
               Navigator.pushNamed(context, '/home');
@@ -303,98 +410,198 @@ class _ProfilePageState extends State<ProfilePage> {
           }
         },
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            GestureDetector(
-              onTap:
-                  user != null ? pickImage : null, // Disable pick if logged out
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: imageProvider,
-                backgroundColor: const Color(0xFFcccccc),
-                child: imageProvider == null
-                    ? const Icon(Icons.camera_alt, color: Colors.white)
-                    : null,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(name,
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            Text(email, style: const TextStyle(color: Colors.black54)),
-            const SizedBox(height: 30),
-            TextField(
-              controller: nameController,
-              enabled: user != null,
-              decoration: const InputDecoration(
-                labelText: "What's your first name?",
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: phoneController,
-              enabled: user != null,
-              decoration: const InputDecoration(
-                labelText: "Phone number",
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.phone),
-              ),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: addressController,
-              enabled: user != null,
-              decoration: const InputDecoration(
-                labelText: "Address",
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.location_city),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: roleController,
-              enabled: user != null,
-              decoration: const InputDecoration(
-                labelText: "Role (Student, Teacher, etc)",
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.person_outline),
-              ),
-            ),
-            const SizedBox(height: 30),
-            if (user != null)
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: updateProfile,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF335e96),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  // Profile Picture Section
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(
+                              0.3), // Increased opacity from 0.1 to 0.3
+                          spreadRadius: 3, // Increased from 2
+                          blurRadius: 15, // Increased from 10
+                          offset: const Offset(
+                              0, 5), // Increased Y offset from 3 to 5
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        GestureDetector(
+                          onTap: user != null ? pickImage : null,
+                          child: Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 50,
+                                backgroundImage: imageProvider,
+                                backgroundColor: Colors.grey[200],
+                                child: imageProvider == null
+                                    ? const Icon(
+                                        Icons.person,
+                                        size: 50,
+                                        color: Colors.grey,
+                                      )
+                                    : null,
+                              ),
+                              if (user != null)
+                                const Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: CircleAvatar(
+                                    radius: 15,
+                                    backgroundColor: Color(0xFF335e96),
+                                    child: Icon(
+                                      Icons.camera_alt,
+                                      size: 15,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          email,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: const Text('Update Profile',
-                      style: TextStyle(fontSize: 16, color: Colors.white)),
-                ),
+                  const SizedBox(height: 20),
+
+                  // Personal Information Section
+                  Container(
+                    padding: const EdgeInsets.all(15),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(
+                              0.3), // Increased opacity from 0.1 to 0.3
+                          spreadRadius: 3, // Increased from 2
+                          blurRadius: 15, // Increased from 10
+                          offset: const Offset(
+                              0, 5), // Increased Y offset from 3 to 5
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Personal Information',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        _buildTextField(
+                          controller: nameController,
+                          label: "Full Name",
+                          icon: Icons.person_outline,
+                          enabled: user != null,
+                        ),
+                        const SizedBox(height: 14),
+                        _buildTextField(
+                          controller: phoneController,
+                          label: "Phone Number",
+                          icon: Icons.phone,
+                          enabled: user != null,
+                          keyboardType: TextInputType.phone,
+                        ),
+                        const SizedBox(height: 14),
+                        _buildTextField(
+                          controller: addressController,
+                          label: "Address",
+                          icon: Icons.location_city,
+                          enabled: user != null,
+                        ),
+                        const SizedBox(height: 14),
+                        _buildTextField(
+                          controller: roleController,
+                          label: "Role (Student, Teacher, etc)",
+                          icon: Icons.work_outline,
+                          enabled: user != null,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Action Buttons
+                  if (user != null) ...[
+                    SizedBox(
+                      width: 180,
+                      child: ElevatedButton(
+                        onPressed: updateProfile,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF335e96),
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Update Profile',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    ListTile(
+                      onTap: resetPassword,
+                      leading: const Icon(Icons.lock_reset,
+                          color: Color(0xFF335e96)),
+                      title: const Text(
+                        'Change Password',
+                        style: TextStyle(
+                          color: Color(0xFF335e96),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      trailing:
+                          const Icon(Icons.chevron_right, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 10),
+                    TextButton(
+                      onPressed: deleteAccount,
+                      child: const Text(
+                        'Delete Account',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 30),
+                ],
               ),
-            const SizedBox(height: 16),
-            if (user != null)
-              TextButton(
-                onPressed: deleteAccount,
-                child: const Text(
-                  'Delete my account',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-            const SizedBox(height: 30),
-          ],
-        ),
-      ),
+            ),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -414,6 +621,198 @@ class _ProfilePageState extends State<ProfilePage> {
           }
         },
       ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool enabled = true,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextField(
+      controller: controller,
+      enabled: enabled,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: Colors.grey[600]),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.grey),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey[400]!),
+        ),
+        filled: true,
+        fillColor: enabled ? Colors.white : Colors.grey[100],
+      ),
+      keyboardType: keyboardType,
+    );
+  }
+}
+
+class ResetPasswordDialog extends StatefulWidget {
+  const ResetPasswordDialog({super.key});
+
+  @override
+  _ResetPasswordDialogState createState() => _ResetPasswordDialogState();
+}
+
+class _ResetPasswordDialogState extends State<ResetPasswordDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _updatePassword() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception('User not logged in');
+
+      // Verify passwords match
+      if (_newPasswordController.text != _confirmPasswordController.text) {
+        throw Exception('Passwords do not match');
+      }
+
+      // Update password in Firebase
+      await user.updatePassword(_newPasswordController.text);
+
+      if (!mounted) return;
+      Navigator.pop(context); // Close the dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password updated successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        _errorMessage = _getErrorMessage(e);
+      });
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  String _getErrorMessage(dynamic error) {
+    if (error is FirebaseAuthException) {
+      switch (error.code) {
+        case 'requires-recent-login':
+          return 'This operation is sensitive and requires recent authentication. Please log out and log in again before changing your password.';
+        case 'weak-password':
+          return 'The password is too weak. Please choose a stronger password.';
+        default:
+          return error.message ?? 'An unknown error occurred';
+      }
+    }
+    return error.toString().replaceAll('Exception: ', '');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Colors.white,
+      title: const Text('Change Password', style: TextStyle(fontSize: 16)),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _newPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'New Password',
+                  labelStyle: TextStyle(fontSize: 14),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(20)),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a new password';
+                  }
+                  if (value.length < 6) {
+                    return 'Password must be at least 6 characters';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _confirmPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm Password',
+                  labelStyle: TextStyle(fontSize: 14),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(20)),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please confirm your password';
+                  }
+                  if (value != _newPasswordController.text) {
+                    return 'Passwords do not match';
+                  }
+                  return null;
+                },
+              ),
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isLoading ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _isLoading ? null : _updatePassword,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF335e96),
+          ),
+          child: _isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+              : const Text(
+                  'Update',
+                  style: TextStyle(color: Colors.white),
+                ),
+        ),
+      ],
     );
   }
 }

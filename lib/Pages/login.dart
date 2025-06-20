@@ -34,18 +34,80 @@ class _LoginScreenState extends State<LoginScreen> {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
 
-    User? user = await _auth.signInWithEmailAndPassword(email, password);
+    try {
+      User? user = await _auth.signInWithEmailAndPassword(email, password);
 
-    setState(() => _isLoading = false);
+      setState(() => _isLoading = false);
 
-    if (user != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login successful')),
+      // Success dialog
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          backgroundColor: Colors.white,
+          title: const Text('Login Successful'),
+          content: const Text('Welcome back!'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.pushReplacementNamed(context, '/home');
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       );
-      Navigator.pushReplacementNamed(context, '/home');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login failed')),
+    } on FirebaseAuthException catch (e) {
+      setState(() => _isLoading = false);
+
+      String errorMessage;
+
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = 'No user found with this email.';
+          break;
+        case 'wrong-password':
+          errorMessage = 'Incorrect password. Please try again.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Invalid email address.';
+          break;
+        case 'user-disabled':
+          errorMessage = 'This user account has been disabled.';
+          break;
+        default:
+          errorMessage = 'Login failed. Please check your credentials.';
+      }
+
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          backgroundColor: Colors.white,
+          title: const Text('Login Failed'),
+          content: Text(errorMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      setState(() => _isLoading = false);
+
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Error'),
+          content: const Text('An unexpected error occurred.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       );
     }
   }
@@ -132,7 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF335e96),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
+                                      borderRadius: BorderRadius.circular(20),
                                     ),
                                     minimumSize:
                                         const Size(double.infinity, 50),
@@ -198,7 +260,7 @@ class _LoginScreenState extends State<LoginScreen> {
         filled: true,
         fillColor: Colors.grey[200],
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide.none,
         ),
       ),
@@ -224,7 +286,7 @@ class _LoginScreenState extends State<LoginScreen> {
         filled: true,
         fillColor: Colors.grey[200],
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide.none,
         ),
         suffixIcon: IconButton(
@@ -255,10 +317,12 @@ class ForgotPasswordScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Full screen white background
       appBar: AppBar(
-        title: const Center(child: Text("Forgot Password")),
+        title: const Text("Forgot Password"),
+        centerTitle: true,
         backgroundColor: Colors.white,
-        elevation: 1,
+        elevation: 0,
         foregroundColor: Colors.black,
       ),
       body: const NewPasswordScreen(),
@@ -277,85 +341,140 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
+
   final _formKey = GlobalKey<FormState>();
   final bool _isProcessing = false;
 
+  bool _obscureNewPassword = true;
+  bool _obscureConfirmPassword = true;
+
   void _submitNewPassword() {
     if (_formKey.currentState!.validate()) {
-      // You can save the new password to your backend here
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password has been changed')),
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Success'),
+            content: const Text('Your password has been changed successfully.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
       );
-      Navigator.pop(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
+    return Container(
+      color: Colors.white, // Ensure screen background remains white
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30.0),
       child: Form(
         key: _formKey,
         child: Column(
           children: [
             const SizedBox(height: 30),
-            const Text(
-              "New Password",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 40),
-            TextFormField(
-              controller: _newPasswordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                hintText: "At least 8 digits",
-                filled: true,
-                fillColor: Colors.grey[200],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none,
+            const SizedBox(height: 30),
+            SizedBox(
+              height: 60,
+              child: TextFormField(
+                controller: _newPasswordController,
+                obscureText: _obscureNewPassword,
+                decoration: InputDecoration(
+                  hintText: "New Password (min 8 characters)",
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide.none,
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureNewPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureNewPassword = !_obscureNewPassword;
+                      });
+                    },
+                  ),
                 ),
+                validator: (value) {
+                  if (value == null || value.length < 8) {
+                    return "Enter at least 8 characters";
+                  }
+                  return null;
+                },
               ),
-              validator: (value) {
-                if (value == null || value.length < 8) {
-                  return "Enter at least 8 characters";
-                }
-                return null;
-              },
             ),
             const SizedBox(height: 20),
-            TextFormField(
-              controller: _confirmPasswordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                hintText: "Confirm Password",
-                filled: true,
-                fillColor: Colors.grey[200],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none,
+            SizedBox(
+              height: 60,
+              child: TextFormField(
+                controller: _confirmPasswordController,
+                obscureText: _obscureConfirmPassword,
+                decoration: InputDecoration(
+                  hintText: "Confirm Password",
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide.none,
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureConfirmPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureConfirmPassword = !_obscureConfirmPassword;
+                      });
+                    },
+                  ),
                 ),
+                validator: (value) {
+                  if (value != _newPasswordController.text) {
+                    return "Passwords do not match";
+                  }
+                  return null;
+                },
               ),
-              validator: (value) {
-                if (value != _newPasswordController.text) {
-                  return "Passwords do not match";
-                }
-                return null;
-              },
             ),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: _isProcessing ? null : _submitNewPassword,
-              style: ElevatedButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 100, vertical: 15),
-                backgroundColor: Colors.deepOrangeAccent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+            const SizedBox(height: 40),
+            SizedBox(
+              width: 200,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _isProcessing ? null : _submitNewPassword,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF335e96),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                child: const Text(
+                  "Send",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
               ),
-              child: const Text("Send",
-                  style: TextStyle(color: Colors.white, fontSize: 16)),
             ),
           ],
         ),

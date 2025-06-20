@@ -84,7 +84,7 @@ class _HandwrittenImagePageState extends State<HandwrittenImagePage> {
     });
 
     try {
-      const serverUrl = 'http://192.168.1.13:5000/predict-handwriting';
+      const serverUrl = 'http://192.168.229.101:5000/predict-handwriting';
       final request = http.MultipartRequest('POST', Uri.parse(serverUrl));
       request.files.add(http.MultipartFile.fromBytes(
         'file',
@@ -292,7 +292,7 @@ class _HandwrittenImagePageState extends State<HandwrittenImagePage> {
                   backgroundColor: const Color(0xFF335e96),
                   foregroundColor: Colors.white,
                   padding:
-                      const EdgeInsets.symmetric(vertical: 25, horizontal: 50),
+                      const EdgeInsets.symmetric(vertical: 20, horizontal: 35),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
@@ -304,7 +304,7 @@ class _HandwrittenImagePageState extends State<HandwrittenImagePage> {
                             color: Colors.white, strokeWidth: 2),
                       )
                     : const Text("Submit Image",
-                        style: TextStyle(fontSize: 18)),
+                        style: TextStyle(fontSize: 16)),
               ),
             ),
             const SizedBox(height: 20),
@@ -378,7 +378,9 @@ class _HandwrittenImagePageState extends State<HandwrittenImagePage> {
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
               labelText: 'Age of the writer',
-              border: OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+              ),
             ),
             onChanged: (value) =>
                 setState(() => _age = int.tryParse(value) ?? 0),
@@ -433,10 +435,11 @@ class _HandwrittenImagePageState extends State<HandwrittenImagePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text(title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         ...options.map((option) {
           return RadioListTile<String>(
-            title: Text(option),
+            title: Text(option, style: const TextStyle(fontSize: 12)),
             value: option,
             groupValue: groupValue,
             onChanged: onChanged,

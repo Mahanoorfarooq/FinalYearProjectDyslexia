@@ -88,7 +88,7 @@ class _DyslexiaInfoPageState extends State<DyslexiaInfoPage> {
         },
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -169,7 +169,7 @@ class _DyslexiaInfoPageState extends State<DyslexiaInfoPage> {
                   child: Text(
                     title,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.indigo,
                     ),
@@ -188,7 +188,7 @@ class _DyslexiaInfoPageState extends State<DyslexiaInfoPage> {
             Text(
               description,
               style: const TextStyle(
-                fontSize: 15,
+                fontSize: 12,
                 height: 1.6,
                 color: Colors.black87,
               ),
@@ -230,7 +230,7 @@ class _DyslexiaInfoPageState extends State<DyslexiaInfoPage> {
               child: Text(
                 question,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   color: Colors.black87,
                   fontWeight: FontWeight.w500,
                 ),

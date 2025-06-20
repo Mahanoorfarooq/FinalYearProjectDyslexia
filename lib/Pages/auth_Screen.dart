@@ -5,7 +5,6 @@ class FirebaseAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Updated signup method with full name saving in Firestore
   Future<User?> signUpWithEmailAndPassword(
       String email, String password, String fullName) async {
     try {
@@ -26,9 +25,8 @@ class FirebaseAuthService {
       }
 
       return user;
-    } catch (e) {
-      print("Sign up error: $e");
-      return null;
+    } on FirebaseAuthException {
+      rethrow; // 🔥 This allows error handling in UI
     }
   }
 
@@ -36,13 +34,10 @@ class FirebaseAuthService {
       String email, String password) async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+          email: email, password: password);
       return userCredential.user;
-    } catch (e) {
-      print("Login error: $e");
-      return null;
+    } on FirebaseAuthException {
+      rethrow; // 🔥 Throw so it can be caught in UI
     }
   }
 }

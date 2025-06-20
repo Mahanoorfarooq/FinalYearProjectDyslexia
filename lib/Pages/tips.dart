@@ -46,7 +46,7 @@ class DyslexiaTipsPage extends StatelessWidget {
         title: const Text(
           'Tips & Tricks for Dyslexia',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.black87,
           ),

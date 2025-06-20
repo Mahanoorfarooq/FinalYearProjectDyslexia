@@ -15,8 +15,8 @@ class ReportsPage extends StatefulWidget {
 }
 
 class _ReportsPageState extends State<ReportsPage> {
-  int _currentIndex = 1; // Reports is index 1 in the bottom nav
-  int _selectedTabIndex = 0; // 0 for MRI, 1 for Handwriting
+  int _currentIndex = 1;
+  int _selectedTabIndex = 0;
 
   Future<List<Map<String, dynamic>>> _fetchCombinedPredictions() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -72,7 +72,7 @@ class _ReportsPageState extends State<ReportsPage> {
           Expanded(
             child: InkWell(
               onTap: () => setState(() => _selectedTabIndex = 0),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
@@ -85,10 +85,10 @@ class _ReportsPageState extends State<ReportsPage> {
                   child: Text(
                     'MRI Reports',
                     style: TextStyle(
-                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
                       color: _selectedTabIndex == 0
                           ? Colors.white
-                          : Colors.grey[600],
+                          : Colors.grey[800],
                     ),
                   ),
                 ),
@@ -109,12 +109,12 @@ class _ReportsPageState extends State<ReportsPage> {
                 ),
                 child: Center(
                   child: Text(
-                    'Handwritten Reports',
+                    'Handwriting Reports',
                     style: TextStyle(
-                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
                       color: _selectedTabIndex == 1
                           ? Colors.white
-                          : Colors.grey[600],
+                          : Colors.grey[800],
                     ),
                   ),
                 ),
@@ -183,6 +183,7 @@ class _ReportsPageState extends State<ReportsPage> {
         title: Text(
           'Prediction: $prediction',
           style: TextStyle(
+            fontSize: 12,
             fontWeight: FontWeight.bold,
             color: prediction.toLowerCase() == 'dyslexic'
                 ? Colors.red

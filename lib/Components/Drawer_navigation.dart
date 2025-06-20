@@ -70,7 +70,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
         padding: EdgeInsets.zero,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 40),
             child: Row(
               children: [
                 CircleAvatar(
@@ -90,7 +90,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                         name.isNotEmpty ? name : 'Welcome!',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 18,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -99,7 +99,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                         email,
                         style: const TextStyle(
                           color: Colors.white70,
-                          fontSize: 14,
+                          fontSize: 12,
                         ),
                       ),
                     ],
@@ -156,7 +156,7 @@ class CustomBottomNavBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: const BoxDecoration(
-        color: Color(0xFF1E2C3A), // Same as Scaffold background
+        color: Color(0xFF1E2C3A),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,

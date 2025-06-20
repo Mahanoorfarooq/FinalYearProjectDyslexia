@@ -43,13 +43,28 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _isLoading = false);
 
     if (user != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sign up successful')),
-      );
-      Navigator.pushReplacementNamed(context, '/home');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sign up failed')),
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text('Sign Up Successful'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+                Navigator.pushReplacementNamed(context, '/home');
+              },
+              child: const Text(
+                'Continue',
+                style: TextStyle(color: Color(0xFF335e96)),
+              ),
+            ),
+          ],
+        ),
       );
     }
   }
@@ -141,7 +156,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF335e96),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
                                 minimumSize: const Size(double.infinity, 50),
                               ),
@@ -208,7 +223,7 @@ class _SignupScreenState extends State<SignupScreen> {
         filled: true,
         fillColor: Colors.grey[200],
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide.none,
         ),
       ),

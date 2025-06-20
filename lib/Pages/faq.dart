@@ -106,7 +106,7 @@ class FaqPage extends StatelessWidget {
               title: Text(
                 faq['question']!,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: Colors.black87,
                 ),
@@ -119,7 +119,7 @@ class FaqPage extends StatelessWidget {
                   child: Text(
                     faq['answer']!,
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       color: Colors.black87,
                       height: 1.5,
                     ),

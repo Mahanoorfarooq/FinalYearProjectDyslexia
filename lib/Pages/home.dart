@@ -70,8 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 22
-          , vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -160,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             fullName ?? 'Loading...',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 22,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -192,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(10),
                   child: Row(
                     children: const [
                       Icon(Icons.info_outline, color: Color(0xFF335e96)),
@@ -201,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Text(
                           'Did you know? Dyslexia affects about 10% of the population worldwide, with males diagnosed roughly 3 times more than females.',
                           style:
-                              TextStyle(color: Color(0xFF335e96), fontSize: 13),
+                              TextStyle(color: Color(0xFF335e96), fontSize: 10),
                         ),
                       ),
                     ],
@@ -213,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 'Explore Features',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: const Color(0xFF335e96),
                 ),
@@ -223,13 +222,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: 3,
-                mainAxisSpacing: 14,
-                crossAxisSpacing: 14,
+                mainAxisSpacing: 3,
+                crossAxisSpacing: 3,
                 childAspectRatio: 0.8,
                 children: [
                   _buildFeatureCard(
-                    icon: FontAwesomeIcons.brain,
-                    title: "What's Dyslexia?",
+                    icon: FontAwesomeIcons.circleInfo,
+                    title: "What is Dyslexia?",
                     onTap: () => Navigator.pushNamed(context, '/dyslexia'),
                   ),
                   _buildFeatureCard(
@@ -240,13 +239,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   _buildFeatureCard(
                     icon: FontAwesomeIcons.filePen,
-                    title: 'Handwritten Image Analysis',
+                    title: 'Writing Image Analysis',
                     onTap: () =>
                         Navigator.pushNamed(context, '/uploadHandwriting'),
                   ),
                   _buildFeatureCard(
-                    icon: FontAwesomeIcons.dna,
-                    title: 'MRI Image Analysis',
+                    icon: FontAwesomeIcons.brain,
+                    title: 'Brain MRI Image Analysis',
                     onTap: () => Navigator.pushNamed(context, '/uploadmri'),
                   ),
                   _buildFeatureCard(
@@ -467,12 +466,12 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 25, color: const Color(0xFF335e96)),
+              Icon(icon, size: 20, color: const Color(0xFF335e96)),
               const SizedBox(height: 8),
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 10,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF335e96),
                 ),
@@ -493,7 +492,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Text(
           title,
           style: const TextStyle(
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Color(0xFF335e96),
           ),
@@ -502,7 +501,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Text(
           subtitle,
           style: const TextStyle(
-            fontSize: 13,
+            fontSize: 12,
             color: Color(0xFF545454),
           ),
         ),

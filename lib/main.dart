@@ -2,7 +2,8 @@ import 'package:dyslexify/Components/Drawer_navigation.dart';
 import 'package:dyslexify/Pages/contact.dart';
 import 'package:dyslexify/Pages/dyslexia.dart';
 import 'package:dyslexify/Pages/faq.dart';
-import 'package:dyslexify/Pages/frontpage.dart';
+import 'package:dyslexify/Pages/introtwo.dart';
+import 'package:dyslexify/Pages/welcome.dart';
 import 'package:dyslexify/Pages/handwritten.dart';
 import 'package:dyslexify/Pages/home.dart';
 import 'package:dyslexify/Pages/login.dart';
@@ -61,7 +62,8 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => const ProfilePage(),
         '/reports': (context) => ReportsPage(),
         '/about': (context) => AboutPage(),
-        '/welcome': (context) => WelcomePage(),
+        '/welcome': (context) => IntroDyslexiaScreen(),
+        '/introtwo': (context) => IntroTwo(),
         '/faq': (context) => FaqPage(),
         '/identifyDyslexia': (context) => identify.IdentifyDyslexiaPage(),
         '/tips': (context) => DyslexiaTipsPage()

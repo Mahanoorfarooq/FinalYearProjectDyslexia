@@ -28,7 +28,7 @@ class IdentifyDyslexiaPage extends StatelessWidget {
           _buildIndicatorsSection(),
           const SizedBox(height: 24),
           _buildSection(
-            title: 'Early Childhood (3–6 yrs)',
+            title: 'Early Childhood (3-6 yrs)',
             points: [
               'Late talking',
               'Trouble learning nursery rhymes',
@@ -37,7 +37,7 @@ class IdentifyDyslexiaPage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _buildSection(
-            title: 'Primary School Age (6–12 yrs)',
+            title: 'Primary School Age (6-12 yrs)',
             points: [
               'Confuses similar-looking letters (b/d, p/q)',
               'Poor spelling and reading fluency',
@@ -87,14 +87,14 @@ class IdentifyDyslexiaPage extends StatelessWidget {
             Expanded(
               child: _buildFeatureCard(
                 icon: Icons.check_circle,
-                label: 'Handwritten Detection',
+                label: 'Handwriting Analysis',
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _buildFeatureCard(
                 icon: Icons.check_circle,
-                label: 'MRI Detection',
+                label: 'Brain Mri Analysis',
               ),
             ),
           ],
@@ -125,7 +125,7 @@ class IdentifyDyslexiaPage extends StatelessWidget {
             label,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
               color: Colors.black87,
             ),
@@ -206,7 +206,7 @@ class IdentifyDyslexiaPage extends StatelessWidget {
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF3F51B5),
                 ),
@@ -217,7 +217,7 @@ class IdentifyDyslexiaPage extends StatelessWidget {
           Text(
             content,
             style: const TextStyle(
-              fontSize: 15,
+              fontSize: 12,
               height: 1.4,
               color: Colors.black87,
             ),
@@ -261,7 +261,7 @@ class IdentifyDyslexiaPage extends StatelessWidget {
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF3F51B5),
                 ),
@@ -275,7 +275,7 @@ class IdentifyDyslexiaPage extends StatelessWidget {
               child: Text(
                 point,
                 style: const TextStyle(
-                  fontSize: 15,
+                  fontSize: 12,
                   color: Colors.black87,
                 ),
               ),
